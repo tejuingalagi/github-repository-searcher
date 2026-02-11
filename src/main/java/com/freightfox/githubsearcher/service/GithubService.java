@@ -1,5 +1,7 @@
 package com.freightfox.githubsearcher.service;
 
-public class GithubService {
+import com.freightfox.githubsearcher.dto.GithubSearchRequest;
 
+public interface GithubService {
+    void searchAndSaveRepositories(GithubSearchRequest request);
 }
