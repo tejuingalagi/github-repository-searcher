@@ -2,6 +2,7 @@ package com.freightfox.githubsearcher.controller;
 
 import com.freightfox.githubsearcher.dto.GithubRepoResponse;
 import com.freightfox.githubsearcher.dto.GithubSearchRequest;
+import com.freightfox.githubsearcher.dto.GithubSearchResponse;
 import com.freightfox.githubsearcher.entity.GithubRepoEntity;
 import com.freightfox.githubsearcher.repository.GithubRepository;
 import com.freightfox.githubsearcher.service.GithubService;
@@ -28,12 +29,21 @@ public class GithubController {
 
     // 1️ Search GitHub repositories and save
     @PostMapping("/search")
-    public ResponseEntity<String> searchRepositories(
+    public ResponseEntity<GithubSearchResponse> searchRepositories(
             @Valid @RequestBody GithubSearchRequest request) {
 
-        githubService.searchAndSaveRepositories(request);
-        return ResponseEntity.ok("Repositories fetched and saved successfully");
+        List<GithubRepoResponse> repositories =
+                githubService.searchAndSaveRepositories(request);
+
+        return ResponseEntity.ok(
+                new GithubSearchResponse(
+                        "Repositories fetched and saved successfully",
+                        repositories
+                )
+        );
     }
+
+
 
     // 2️ Fetch stored repositories (DTO response)
     @GetMapping("/repositories")

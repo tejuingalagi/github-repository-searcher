@@ -2,11 +2,15 @@ package com.freightfox.githubsearcher.service.impl;
 
 import com.freightfox.githubsearcher.dto.GithubApiResponse;
 import com.freightfox.githubsearcher.dto.GithubRepoItem;
+import com.freightfox.githubsearcher.dto.GithubRepoResponse;
 import com.freightfox.githubsearcher.dto.GithubSearchRequest;
 import com.freightfox.githubsearcher.entity.GithubRepoEntity;
 import com.freightfox.githubsearcher.exception.GithubApiException;
 import com.freightfox.githubsearcher.repository.GithubRepository;
 import com.freightfox.githubsearcher.service.GithubService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,7 +32,7 @@ public class GithubServiceImpl implements GithubService {
     }
 
     @Override
-    public void searchAndSaveRepositories(GithubSearchRequest request) {
+    public List<GithubRepoResponse> searchAndSaveRepositories(GithubSearchRequest request) {
 
         try {
             StringBuilder query = new StringBuilder();
@@ -51,6 +55,8 @@ public class GithubServiceImpl implements GithubService {
                 throw new GithubApiException("Empty response from GitHub API");
             }
 
+            List<GithubRepoResponse> result = new ArrayList<>();
+
             for (GithubRepoItem item : response.getItems()) {
 
                 GithubRepoEntity entity =
@@ -62,16 +68,31 @@ public class GithubServiceImpl implements GithubService {
                 entity.setDescription(item.getDescription());
                 entity.setOwner(item.getOwner().getLogin());
                 entity.setLanguage(item.getLanguage());
-                entity.setStars(item.getStars());
-                entity.setForks(item.getForks());
-                entity.setLastUpdated(item.getLastUpdated());
+                entity.setStars(item.getStars());        
+                entity.setForks(item.getForks());       
+                entity.setLastUpdated(item.getLastUpdated()); 
 
+                GithubRepoEntity saved = githubRepository.save(entity);
 
-                githubRepository.save(entity); // UPSERT
+                // Convert Entity → DTO
+                result.add(new GithubRepoResponse(
+                        saved.getId(),
+                        saved.getGithubRepoId(),
+                        saved.getName(),
+                        saved.getDescription(),
+                        saved.getOwner(),
+                        saved.getLanguage(),
+                        saved.getStars(),
+                        saved.getForks(),
+                        saved.getLastUpdated()
+                ));
             }
+
+            return result; 
 
         } catch (Exception ex) {
             throw new GithubApiException("Failed to fetch repositories from GitHub", ex);
         }
     }
+
 }

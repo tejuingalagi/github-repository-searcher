@@ -9,7 +9,7 @@ public class GithubSearchResponse {
 
     public GithubSearchResponse(String message, List<GithubRepoResponse> repositories) {
         this.message = message;
-        this.repositories = repositories;
+
     }
 
     public String getMessage() {

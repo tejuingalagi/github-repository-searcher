@@ -1,7 +1,10 @@
 package com.freightfox.githubsearcher.service;
 
+import java.util.List;
+
+import com.freightfox.githubsearcher.dto.GithubRepoResponse;
 import com.freightfox.githubsearcher.dto.GithubSearchRequest;
 
 public interface GithubService {
-    void searchAndSaveRepositories(GithubSearchRequest request);
+    List<GithubRepoResponse> searchAndSaveRepositories(GithubSearchRequest request);
 }
