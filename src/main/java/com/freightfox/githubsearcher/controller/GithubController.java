@@ -9,10 +9,13 @@ import com.freightfox.githubsearcher.service.GithubService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Sort;
+
 
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/github")
@@ -49,16 +52,36 @@ public class GithubController {
     @GetMapping("/repositories")
     public ResponseEntity<List<GithubRepoResponse>> getRepositories(
             @RequestParam(required = false) String language,
-            @RequestParam(required = false) Integer minStars) {
+            @RequestParam(required = false) Integer minStars,
+            @RequestParam(defaultValue = "stars") String sort) {
 
-        List<GithubRepoEntity> entities;
+        Sort sorting;
 
+        switch (sort.toLowerCase()) {
+            case "forks":
+                sorting = Sort.by(Sort.Direction.DESC, "forks");
+                break;
+            case "updated":
+                sorting = Sort.by(Sort.Direction.DESC, "lastUpdated");
+                break;
+            default:
+                sorting = Sort.by(Sort.Direction.DESC, "stars");
+        }
+
+        List<GithubRepoEntity> entities =
+                githubRepository.findAll(sorting);
+
+        // Apply filters manually
         if (language != null) {
-            entities = githubRepository.findByLanguageIgnoreCase(language);
-        } else if (minStars != null) {
-            entities = githubRepository.findByStarsGreaterThanEqual(minStars);
-        } else {
-            entities = githubRepository.findAll();
+            entities = entities.stream()
+                    .filter(e -> language.equalsIgnoreCase(e.getLanguage()))
+                    .toList();
+        }
+
+        if (minStars != null) {
+            entities = entities.stream()
+                    .filter(e -> e.getStars() != null && e.getStars() >= minStars)
+                    .toList();
         }
 
         List<GithubRepoResponse> response =
@@ -78,5 +101,6 @@ public class GithubController {
 
         return ResponseEntity.ok(response);
     }
+
 }
 
