@@ -2,6 +2,7 @@ package com.freightfox.githubsearcher.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(
@@ -33,11 +34,20 @@ public class GithubRepoEntity {
 
     private Integer forks;
 
-    private LocalDateTime lastUpdated;
+    private OffsetDateTime lastUpdated;
+
 
     // ===== Getters & Setters =====
 
-    public Long getId() {
+    public OffsetDateTime getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public void setLastUpdated(OffsetDateTime lastUpdated) {
+		this.lastUpdated = lastUpdated;
+	}
+
+	public Long getId() {
         return id;
     }
 
@@ -101,11 +111,5 @@ public class GithubRepoEntity {
         this.forks = forks;
     }
 
-    public LocalDateTime getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(LocalDateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
+    
 }

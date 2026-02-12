@@ -1,6 +1,6 @@
 package com.freightfox.githubsearcher.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public class GithubRepoResponse {
 
@@ -12,19 +12,11 @@ public class GithubRepoResponse {
     private String language;
     private Integer stars;
     private Integer forks;
-    private LocalDateTime lastUpdated;
+    private OffsetDateTime lastUpdated;
 
-    public GithubRepoResponse() {}
-
-    public GithubRepoResponse(Long id,
-                              Long githubRepoId,
-                              String name,
-                              String description,
-                              String owner,
-                              String language,
-                              Integer stars,
-                              Integer forks,
-                              LocalDateTime lastUpdated) {
+    public GithubRepoResponse(Long id, Long githubRepoId, String name,
+                              String description, String owner, String language,
+                              Integer stars, Integer forks, OffsetDateTime lastUpdated) {
         this.id = id;
         this.githubRepoId = githubRepoId;
         this.name = name;
@@ -36,39 +28,13 @@ public class GithubRepoResponse {
         this.lastUpdated = lastUpdated;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Long getGithubRepoId() {
-        return githubRepoId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public Integer getStars() {
-        return stars;
-    }
-
-    public Integer getForks() {
-        return forks;
-    }
-
-    public LocalDateTime getLastUpdated() {
-        return lastUpdated;
-    }
+    public Long getId() { return id; }
+    public Long getGithubRepoId() { return githubRepoId; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public String getOwner() { return owner; }
+    public String getLanguage() { return language; }
+    public Integer getStars() { return stars; }
+    public Integer getForks() { return forks; }
+    public OffsetDateTime getLastUpdated() { return lastUpdated; }
 }

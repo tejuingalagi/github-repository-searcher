@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -89,7 +90,9 @@ public class GithubServiceImpl implements GithubService {
 
             return result;
 
-        } catch (Exception ex) {
+        } catch (HttpClientErrorException.TooManyRequests ex) {
+            throw new GithubApiException("GitHub API rate limit exceeded. Try again later.");
+        }catch (Exception ex) {
             throw new GithubApiException("Failed to fetch repositories from GitHub", ex);
         }
     }
