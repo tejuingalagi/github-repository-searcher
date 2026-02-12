@@ -8,3 +8,4 @@ import com.freightfox.githubsearcher.dto.GithubSearchRequest;
 public interface GithubService {
     List<GithubRepoResponse> searchAndSaveRepositories(GithubSearchRequest request);
 }
+

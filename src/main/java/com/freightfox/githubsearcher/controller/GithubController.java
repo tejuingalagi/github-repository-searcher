@@ -27,7 +27,7 @@ public class GithubController {
         this.githubRepository = githubRepository;
     }
 
-    // 1️ Search GitHub repositories and save
+    // POST - search and save
     @PostMapping("/search")
     public ResponseEntity<GithubSearchResponse> searchRepositories(
             @Valid @RequestBody GithubSearchRequest request) {
@@ -35,17 +35,17 @@ public class GithubController {
         List<GithubRepoResponse> repositories =
                 githubService.searchAndSaveRepositories(request);
 
-        return ResponseEntity.ok(
+        GithubSearchResponse response =
                 new GithubSearchResponse(
                         "Repositories fetched and saved successfully",
                         repositories
-                )
-        );
+                );
+
+        return ResponseEntity.ok(response);
     }
 
 
-
-    // 2️ Fetch stored repositories (DTO response)
+    // GET - retrieve stored
     @GetMapping("/repositories")
     public ResponseEntity<List<GithubRepoResponse>> getRepositories(
             @RequestParam(required = false) String language,
@@ -74,8 +74,9 @@ public class GithubController {
                                 e.getForks(),
                                 e.getLastUpdated()
                         ))
-                        .collect(Collectors.toList());
+                        .toList();
 
         return ResponseEntity.ok(response);
     }
 }
+

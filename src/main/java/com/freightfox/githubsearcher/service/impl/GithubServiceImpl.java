@@ -68,13 +68,12 @@ public class GithubServiceImpl implements GithubService {
                 entity.setDescription(item.getDescription());
                 entity.setOwner(item.getOwner().getLogin());
                 entity.setLanguage(item.getLanguage());
-                entity.setStars(item.getStars());        
-                entity.setForks(item.getForks());       
-                entity.setLastUpdated(item.getLastUpdated()); 
+                entity.setStars(item.getStars());
+                entity.setForks(item.getForks());
+                entity.setLastUpdated(item.getLastUpdated());
 
                 GithubRepoEntity saved = githubRepository.save(entity);
 
-                // Convert Entity → DTO
                 result.add(new GithubRepoResponse(
                         saved.getId(),
                         saved.getGithubRepoId(),
@@ -88,11 +87,12 @@ public class GithubServiceImpl implements GithubService {
                 ));
             }
 
-            return result; 
+            return result;
 
         } catch (Exception ex) {
             throw new GithubApiException("Failed to fetch repositories from GitHub", ex);
         }
     }
+
 
 }
