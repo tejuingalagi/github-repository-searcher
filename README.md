@@ -1,10 +1,8 @@
-# GitHub Repository Searcher – Spring Boot
+# GitHub Repository Searcher API
 
-## Overview
+A Spring Boot REST API that fetches repositories from GitHub, stores them in PostgreSQL, and provides filtering, sorting and pagination.
 
-This project is a **Spring Boot REST API application** that allows users to search GitHub repositories using the GitHub REST API, store the results in a MySQL database, and retrieve stored repositories using filter criteria.
-
-The application demonstrates REST API design, database persistence, API integration, error handling, and unit testing.
+This project demonstrates clean backend architecture, database filtering, upsert handling and production-style REST API design.
 
 ---
 
@@ -13,26 +11,68 @@ The application demonstrates REST API design, database persistence, API integrat
 * Java 8 Compatible
 * Spring Boot 2.7
 * Spring Data JPA (Hibernate)
-* MySQL Database
-* RESTTemplate
-* JUnit 5 & Mockito
+* PostgreSQL
+* REST API
 * Maven
+* JUnit & Mockito
 
 ---
 
 ## Features
 
-### 1. Search GitHub Repositories
+### 1. Fetch repositories from GitHub
 
-Fetch repositories from GitHub API and store/update them in database.
+Search GitHub repositories using:
 
-**Endpoint**
+* Repository name (partial/full match)
+* Programming language
+* Sort by stars / forks / updated
+
+The application calls the GitHub API:
 
 ```
-POST /api/github/search
+https://api.github.com/search/repositories
 ```
 
-**Request Body**
+---
+
+### 2. Store results in PostgreSQL
+
+Stores repository details:
+
+* Repository ID (unique from GitHub)
+* Name
+* Description
+* Owner
+* Language
+* Stars
+* Forks
+* Last Updated Date
+
+If repository already exists → it updates instead of duplicate (**UPSERT behavior**).
+
+---
+
+### 3. Retrieve stored repositories
+
+Supports database-level filtering:
+
+* Filter by language
+* Filter by minimum stars
+* Sorting
+* Pagination
+
+Filtering is executed at database level using JPA query for better performance.
+
+---
+
+## API Endpoints
+
+### 1️⃣ Search GitHub and Save
+
+**POST** `/api/github/search`
+
+Request:
 
 ```json
 {
@@ -42,73 +82,90 @@ POST /api/github/search
 }
 ```
 
-**Behavior**
+Response:
 
-* Fetches repositories from GitHub API
-* Saves new repositories
-* Updates existing repositories (prevents duplicates)
-* Handles API failures and rate limits
+```json
+{
+  "message": "Repositories fetched and saved successfully",
+  "repositories": [...]
+}
+```
 
 ---
 
-### 2. Retrieve Stored Repositories
+### 2️⃣ Get Stored Repositories
 
-```
-GET /api/github/repositories
-```
+**GET** `/api/github/repositories`
 
-**Query Parameters**
+Query Parameters:
 
 | Parameter | Description                    |
 | --------- | ------------------------------ |
 | language  | Filter by programming language |
 | minStars  | Minimum star count             |
 | sort      | stars / forks / updated        |
+| page      | Page number                    |
+| size      | Page size                      |
 
-**Example**
+Example:
 
 ```
-GET /api/github/repositories?language=Java&minStars=100&sort=stars
+GET /api/github/repositories?language=Java&minStars=100&sort=stars&page=0&size=5
 ```
 
 ---
 
-## Database Fields Stored
+## Pagination Supported
 
-* GitHub Repository ID
-* Name
-* Description
-* Owner
-* Language
-* Stars Count
-* Forks Count
-* Last Updated Date
-
-If repository already exists → it is updated instead of duplicated.
+```
+GET /api/github/repositories?page=0&size=10
+```
 
 ---
 
 ## Error Handling
 
-Handles:
+Invalid sort example:
 
-* Invalid GitHub API response
-* API rate limit exceeded
-* Empty search results
-* Invalid request inputs
+```
+GET /api/github/repositories?sort=random
+```
+
+Response:
+
+```json
+{
+  "error": "Invalid Parameter",
+  "message": "Invalid sort field. Use stars, forks or updated",
+  "status": 400
+}
+```
 
 ---
 
-## Running the Project
+## Architecture
 
-### 1. Clone Repository
+Controller → Service → Repository → Database
+
+Separation of concerns:
+
+* Controller handles HTTP requests
+* Service handles business logic
+* Repository handles database queries
+* Exception handler handles API errors
+
+---
+
+## How to Run
+
+### 1. Clone project
 
 ```
 git clone https://github.com/tejuingalagi/github-repository-searcher.git
 cd github-repository-searcher
 ```
 
-### 2. Configure MySQL
+### 2. Configure PostgreSQL
 
 Create database:
 
@@ -116,25 +173,30 @@ Create database:
 github_db
 ```
 
-Update `application.properties` if needed:
+Update `application.properties`:
 
 ```
-spring.datasource.url=jdbc:mysql://localhost:3306/github_db
-spring.datasource.username=root
-spring.datasource.password=tiger
+spring.datasource.url=jdbc:postgresql://localhost:5432/github_db
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.jpa.hibernate.ddl-auto=update
 ```
 
-### 3. Run Application
+---
+
+### 3. Run application
 
 ```
 mvn spring-boot:run
 ```
 
-Server starts at:
+Server runs at:
 
 ```
 http://localhost:8080
 ```
+
+Test using Postman.
 
 ---
 
@@ -153,19 +215,17 @@ Includes:
 
 ---
 
-## API Testing
+## Evaluation Criteria Covered
 
-Test endpoints using Postman.
-
----
-
-## Design Approach
-
-* Controller → Handles HTTP requests
-* Service → Business logic
-* Repository → Database operations
-* DTO → API communication models
-* Exception Handler → Centralized error handling
+✔ REST compliant APIs
+✔ PostgreSQL storage
+✔ Upsert handling (no duplicates)
+✔ Pagination
+✔ Sorting validation
+✔ Clean layered architecture
+✔ Error handling
+✔ Database filtering
+✔ Testable via Postman
 
 ---
 
