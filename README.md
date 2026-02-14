@@ -1,5 +1,7 @@
 # GitHub Repository Searcher API
 
+## Overview
+
 A Spring Boot REST API that fetches repositories from GitHub, stores them in PostgreSQL, and provides filtering, sorting and pagination.
 
 This project demonstrates clean backend architecture, database filtering, upsert handling and production-style REST API design.
