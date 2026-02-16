@@ -162,25 +162,34 @@ Handles:
 
 ## Architecture
 
-The application follows a layered architecture:
+The project follows a clean layered architecture with clear separation of concerns.
 
 ### Controller Layer
-Handles HTTP requests, input validation, and response formatting.
+Handles HTTP requests, performs input validation, and returns API responses.
 
 ### Service Layer
-Contains business logic, integrates with GitHub API, and processes repository data.
+Contains business logic:
+- Calls GitHub REST API
+- Processes repository data
+- Handles update vs insert logic
 
 ### Repository Layer
-Performs database operations using Spring Data JPA.
+Performs database operations and filtering using Spring Data JPA.
 
-### Global Exception Handler
-Provides consistent and structured error responses.
+### DTO Layer
+Used to separate API models from database entities and control response structure.
 
----
+### Entity Layer
+Represents database tables mapped using JPA.
 
-Flow:
-Client → Controller → Service → GitHub API → Database → Response
+### Exception Handling
+Global exception handler provides consistent error responses and API error mapping.
 
+### Configuration
+RestTemplate configuration enables external GitHub API communication.
+
+### Testing
+Unit tests implemented for controller and service layers using JUnit and Mockito.
 
 ---
 
