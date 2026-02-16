@@ -1,4 +1,4 @@
-package com.freightfox.githubsearcher.exception;
+package com.githubsearcher.exception;
 
 public class GithubApiException extends RuntimeException {
 

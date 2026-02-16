@@ -1,4 +1,4 @@
-package com.freightfox.githubsearcher.dto;
+package com.githubsearcher.dto;
 
 import java.time.OffsetDateTime;
 

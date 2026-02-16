@@ -1,13 +1,4 @@
-package com.freightfox.githubsearcher.service.impl;
-
-import com.freightfox.githubsearcher.dto.GithubApiResponse;
-import com.freightfox.githubsearcher.dto.GithubRepoItem;
-import com.freightfox.githubsearcher.dto.GithubRepoResponse;
-import com.freightfox.githubsearcher.dto.GithubSearchRequest;
-import com.freightfox.githubsearcher.entity.GithubRepoEntity;
-import com.freightfox.githubsearcher.exception.GithubApiException;
-import com.freightfox.githubsearcher.repository.GithubRepository;
-import com.freightfox.githubsearcher.service.GithubService;
+package com.githubsearcher.service.impl;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +9,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import com.githubsearcher.dto.GithubApiResponse;
+import com.githubsearcher.dto.GithubRepoItem;
+import com.githubsearcher.dto.GithubRepoResponse;
+import com.githubsearcher.dto.GithubSearchRequest;
+import com.githubsearcher.entity.GithubRepoEntity;
+import com.githubsearcher.exception.GithubApiException;
+import com.githubsearcher.repository.GithubRepository;
+import com.githubsearcher.service.GithubService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,23 +32,33 @@ public class GithubServiceImpl implements GithubService {
 
     @Value("${github.api.url}")
     private String githubApiUrl;
+    
+    private static final List<String> ALLOWED_SORT =
+            List.of("stars","forks","updated");
+
 
     public GithubServiceImpl(RestTemplate restTemplate,
                              GithubRepository githubRepository) {
         this.restTemplate = restTemplate;
         this.githubRepository = githubRepository;
     }
+    
 
-    // =========================
+   
     // SEARCH FROM GITHUB + SAVE
-    // =========================
     @Override
     public List<GithubRepoResponse> searchAndSaveRepositories(GithubSearchRequest request) {
 
         try {
-            StringBuilder query = new StringBuilder();
 
-            // URL ENCODING FIX
+            // -------- SORT VALIDATION ----------
+            if (request.getSort() != null &&
+                    !ALLOWED_SORT.contains(request.getSort().toLowerCase())) {
+                throw new IllegalArgumentException(
+                        "Invalid sort field. Use stars, forks or updated");
+            }
+
+            StringBuilder query = new StringBuilder();
             query.append("?q=").append(URLEncoder.encode(request.getQuery(), StandardCharsets.UTF_8));
 
             if (request.getLanguage() != null && !request.getLanguage().isEmpty()) {
@@ -59,7 +69,10 @@ public class GithubServiceImpl implements GithubService {
                 query.append("&sort=").append(request.getSort());
             }
 
-            String url = githubApiUrl + query;
+            // pagination
+            query.append("&per_page=50&page=1");
+
+            String url = githubApiUrl + query.toString();
 
             GithubApiResponse response =
                     restTemplate.getForObject(url, GithubApiResponse.class);
@@ -79,11 +92,16 @@ public class GithubServiceImpl implements GithubService {
                 entity.setGithubRepoId(item.getId());
                 entity.setName(item.getName());
                 entity.setDescription(item.getDescription());
-                entity.setOwner(item.getOwner().getLogin());
-                entity.setLanguage(item.getLanguage());
-                entity.setStars(item.getStars());
-                entity.setForks(item.getForks());
-                entity.setLastUpdated(item.getLastUpdated());
+
+                String owner = (item.getOwner() != null && item.getOwner().getLogin() != null)
+                        ? item.getOwner().getLogin()
+                        : "unknown";
+                entity.setOwner(owner);
+
+                if (item.getLanguage() != null) entity.setLanguage(item.getLanguage());
+                if (item.getStars() != null) entity.setStars(item.getStars());
+                if (item.getForks() != null) entity.setForks(item.getForks());
+                if (item.getLastUpdated() != null) entity.setLastUpdated(item.getLastUpdated());
 
                 GithubRepoEntity saved = githubRepository.save(entity);
 
@@ -102,16 +120,26 @@ public class GithubServiceImpl implements GithubService {
 
             return result;
 
-        } catch (HttpClientErrorException.TooManyRequests ex) {
-            throw new GithubApiException("GitHub API rate limit exceeded. Try again later.");
+        } catch (HttpClientErrorException ex) {
+
+            // -------- RATE LIMIT FIX ----------
+            if (ex.getStatusCode().value() == 403) {
+                throw new GithubApiException("GitHub API rate limit exceeded. Try again later.");
+            }
+
+            throw new GithubApiException("GitHub API error: " + ex.getStatusCode());
+
+        } catch (IllegalArgumentException ex) {
+            throw ex; // let GlobalExceptionHandler return 400
         } catch (Exception ex) {
             throw new GithubApiException("Failed to fetch repositories from GitHub", ex);
         }
+
     }
 
-    // =========================
-    // FETCH FROM DATABASE (NEW)
-    // =========================
+
+    
+    // FETCH FROM DATABASE
     @Override
     public Page<GithubRepoResponse> getStoredRepositories(
             String language,
@@ -120,9 +148,12 @@ public class GithubServiceImpl implements GithubService {
             int page,
             int size) {
 
+        if (sort == null) sort = "stars";
+        sort = sort.toLowerCase();
+
         Sort sorting;
 
-        switch (sort.toLowerCase()) {
+        switch (sort) {
             case "forks":
                 sorting = Sort.by("forks").descending();
                 break;

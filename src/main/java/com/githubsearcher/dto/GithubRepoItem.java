@@ -1,4 +1,4 @@
-package com.freightfox.githubsearcher.dto;
+package com.githubsearcher.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;

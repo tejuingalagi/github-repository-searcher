@@ -1,11 +1,11 @@
-package com.freightfox.githubsearcher.service;
+package com.githubsearcher.service;
 
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 
-import com.freightfox.githubsearcher.dto.GithubRepoResponse;
-import com.freightfox.githubsearcher.dto.GithubSearchRequest;
+import com.githubsearcher.dto.GithubRepoResponse;
+import com.githubsearcher.dto.GithubSearchRequest;
 
 public interface GithubService {
 

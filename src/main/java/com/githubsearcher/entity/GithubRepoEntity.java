@@ -1,4 +1,4 @@
-package com.freightfox.githubsearcher.entity;
+package com.githubsearcher.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

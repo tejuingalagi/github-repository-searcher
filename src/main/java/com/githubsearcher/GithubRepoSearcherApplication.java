@@ -1,13 +1,13 @@
-package com.freightfox.githubsearcher;
+package com.githubsearcher;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FreightfoxGithubRepoSearcherApplication {
+public class GithubRepoSearcherApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FreightfoxGithubRepoSearcherApplication.class, args);
+		SpringApplication.run(GithubRepoSearcherApplication.class, args);
 	}
 
 }
