@@ -1,8 +1,8 @@
 # GitHub Repository Searcher API
 
-A Spring Boot REST API that fetches repositories from GitHub, stores them in PostgreSQL, and provides advanced filtering, sorting and pagination.
+A Spring Boot REST API that fetches repositories from the GitHub REST API, stores them in PostgreSQL, and provides filtered retrieval using sorting and pagination.
 
-This project demonstrates clean backend architecture, external API integration, database upsert handling and centralized error handling.
+This project demonstrates backend API development, external API integration, database persistence, validation, and structured error handling.
 
 ---
 
@@ -10,28 +10,25 @@ This project demonstrates clean backend architecture, external API integration, 
 
 The application:
 
-1. Fetches repositories from GitHub Search API
-2. Stores them in PostgreSQL
-3. Updates existing records (prevents duplicates)
-4. Allows querying stored repositories using filters, sorting and pagination
+* Fetches repositories from GitHub Search API
+* Stores them in PostgreSQL database
+* Updates existing records to avoid duplicates
+* Allows querying stored repositories using filters and sorting
 
 GitHub API used:
-
-```
 https://api.github.com/search/repositories
-```
 
 ---
 
 ## Tech Stack
 
-- Java 8
-- Spring Boot 2.7
-- Spring Data JPA (Hibernate)
-- PostgreSQL
-- RESTTemplate (External API Integration)
-- Maven
-- JUnit & Mockito
+* Java 8
+* Spring Boot 2.7
+* Spring Data JPA (Hibernate)
+* PostgreSQL
+* RESTTemplate
+* Maven
+* JUnit 5 & Mockito
 
 ---
 
@@ -41,15 +38,16 @@ https://api.github.com/search/repositories
 
 Search repositories using:
 
-- Repository name
-- Programming language
-- Sort (stars / forks / updated)
+* Repository name
+* Programming language
+* Sort (stars / forks / updated)
 
 Handles:
 
-- URL encoding of queries
-- GitHub API failures
-- Rate limit errors
+* Invalid requests
+* GitHub API failures
+* Rate limit exceeded responses
+* Empty search results
 
 ---
 
@@ -57,32 +55,30 @@ Handles:
 
 Stored fields:
 
-- GitHub Repository ID (Unique)
-- Name
-- Description
-- Owner
-- Language
-- Stars
-- Forks
-- Last Updated
+* GitHub Repository ID (unique)
+* Name
+* Description
+* Owner
+* Language
+* Stars
+* Forks
+* Last Updated
 
-**UPSERT Behavior**
-
-If repository already exists → record is updated instead of duplicated  
-(implemented using unique constraint on `github_repo_id`)
+**Update Instead of Duplicate**
+If a repository already exists, its details are updated instead of inserting a new record.
 
 ---
 
 ### 3. Retrieve Stored Repositories
 
-Supports database-level filtering:
+Supports filtering:
 
-- Filter by language
-- Filter by minimum stars
-- Sorting
-- Pagination
+* Language
+* Minimum stars
+* Sorting
+* Pagination
 
-All filtering happens in database (JPA query) for performance.
+All filtering is performed in database queries for efficiency.
 
 ---
 
@@ -90,9 +86,10 @@ All filtering happens in database (JPA query) for performance.
 
 ### Search GitHub & Save
 
-**POST** `/api/github/search`
+**POST /api/github/search**
 
 #### Request
+
 ```json
 {
   "query": "spring boot",
@@ -102,6 +99,7 @@ All filtering happens in database (JPA query) for performance.
 ```
 
 #### Response
+
 ```json
 {
   "message": "Repositories fetched and saved successfully",
@@ -109,46 +107,42 @@ All filtering happens in database (JPA query) for performance.
 }
 ```
 
+If GitHub returns no repositories, API responds successfully with an empty list.
+
 ---
 
 ### Get Stored Repositories
 
-**GET** `/api/github/repositories`
+**GET /api/github/repositories**
 
 #### Query Parameters
 
-| Parameter | Description |
-|--------|------|
-| language | Filter by language |
-| minStars | Minimum star count |
-| sort | stars / forks / updated |
-| page | Page number |
-| size | Page size |
+| Parameter | Description             |
+| --------- | ----------------------- |
+| language  | Filter by language      |
+| minStars  | Minimum star count      |
+| sort      | stars / forks / updated |
+| page      | Page number             |
+| size      | Page size               |
 
-#### Example
-```
-GET /api/github/repositories?language=Java&minStars=100&sort=stars&page=0&size=5
-```
-
----
-
-## Pagination Example
+Example:
 
 ```
-GET /api/github/repositories?page=0&size=10
+GET /api/github/repositories?language=Java&minStars=100&sort=stars&page=0&size=10
 ```
 
 ---
 
 ## Error Handling
 
-Invalid sort example:
+Example invalid sort:
 
 ```
 GET /api/github/repositories?sort=random
 ```
 
-#### Response
+Response:
+
 ```json
 {
   "error": "Invalid Parameter",
@@ -159,31 +153,41 @@ GET /api/github/repositories?sort=random
 
 Handles:
 
-- Invalid parameters
-- GitHub API failures
-- Rate limit exceeded
-- Empty responses
+* Invalid parameters
+* GitHub API failures
+* Rate limit exceeded
+* Empty results
 
 ---
 
 ## Architecture
 
-```
-Controller → Service → Repository → Database
-```
+The application follows a layered architecture:
 
-### Responsibilities
+### Controller Layer
+Handles HTTP requests, input validation, and response formatting.
 
-- Controller → Handles HTTP requests
-- Service → Business logic & GitHub integration
-- Repository → Database queries
-- Global Exception Handler → Centralized error responses
+### Service Layer
+Contains business logic, integrates with GitHub API, and processes repository data.
+
+### Repository Layer
+Performs database operations using Spring Data JPA.
+
+### Global Exception Handler
+Provides consistent and structured error responses.
+
+---
+
+Flow:
+Client → Controller → Service → GitHub API → Database → Response
+
 
 ---
 
 ## How to Run
 
 ### 1. Clone Project
+
 ```
 git clone https://github.com/tejuingalagi/github-repository-searcher.git
 cd github-repository-searcher
@@ -192,6 +196,7 @@ cd github-repository-searcher
 ### 2. Configure PostgreSQL
 
 Create database:
+
 ```
 github_db
 ```
@@ -200,22 +205,25 @@ Update `application.properties`:
 
 ```
 spring.datasource.url=jdbc:postgresql://localhost:5432/github_db
-spring.datasource.username=postgres
-spring.datasource.password=postgres
+spring.datasource.username=your_username
+spring.datasource.password=your_password
 spring.jpa.hibernate.ddl-auto=update
 ```
 
 ### 3. Run Application
+
 ```
+mvn clean install
 mvn spring-boot:run
 ```
 
 Server runs at:
+
 ```
 http://localhost:8080
 ```
 
-Test using Postman or Swagger.
+Test using Postman.
 
 ---
 
@@ -227,25 +235,16 @@ Run unit tests:
 mvn test
 ```
 
-Includes:
+Tests include:
 
-- Controller tests (MockMvc)
-- Service tests (Mockito)
-
----
-
-## Key Backend Concepts Demonstrated
-
-- RESTful API design
-- External API integration
-- Database upsert handling
-- Pagination & sorting
-- Dynamic filtering
-- Global exception handling
-- Clean layered architecture
+* Controller validation tests
+* Successful repository search
+* Duplicate repository update
+* Filtering & sorting retrieval
+* Error handling scenarios
 
 ---
 
 ## Author
 
-**Tejeshwini Ingalagi**
+Tejeshwini Ingalagi
